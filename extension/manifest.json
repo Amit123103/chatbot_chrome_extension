@@ -22,7 +22,7 @@
     }
   ],
   "action": {
-    "default_popup": "popup.html",
+    "default_title": "Click to open AI Chatbot",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -48,13 +48,6 @@
         "mac": "Command+Shift+H"
       },
       "description": "Quickly hide the chatbot"
-    },
-    "popup-mode": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+U",
-        "mac": "Command+Shift+U"
-      },
-      "description": "Open chatbot in detached popup window"
     }
   }
 }

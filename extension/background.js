@@ -1,35 +1,35 @@
 /**
  * AI Smart Selection Assistant — Background Service Worker (Stealth Mode)
  * 
- * Manages the stealth popup window lifecycle:
- * - Opens/closes/hides the popup window
+ * - Clicking the extension icon → opens the chatbot popup window
+ * - Keyboard shortcuts → toggle/hide the chatbot
  * - Forwards selected text from content script to popup
- * - Handles all keyboard command routing
- * - Popup window is separate from the tab = invisible to tab capture
+ * - Auto-hide/restore on tab switch
  */
+
+const BACKEND_URL = 'https://chatbot-chrome-extension-wnhp.onrender.com';
 
 let popupWindowId = null;
 let popupWasOpen = false;
 let pendingSelection = null;
 
-// ─── Keyboard Command Handling (from manifest) ──────────────────────────
-chrome.commands.onCommand.addListener(async (command) => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id) return;
+// ─── CLICKING THE EXTENSION ICON → Opens Chatbot ────────────────────────
+chrome.action.onClicked.addListener(() => {
+  openPopupWindow();
+});
 
+// ─── Keyboard Commands (from manifest) ──────────────────────────────────
+chrome.commands.onCommand.addListener(async (command) => {
   if (command === 'toggle-chat') {
     togglePopupWindow();
   } else if (command === 'quick-hide') {
     closePopupWindow();
-  } else if (command === 'popup-mode') {
-    openPopupWindow();
   }
 });
 
 // ─── Message Handling ────────────────────────────────────────────────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.action) {
-    // Content script: text was selected
     case 'selection-made':
       pendingSelection = {
         text: message.text,
@@ -37,7 +37,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         type: message.type
       };
       openPopupWindow().then(() => {
-        // Send to popup after a short delay to let it initialize
         setTimeout(() => {
           sendToPopup({
             action: 'new-selection',
@@ -45,61 +44,51 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             prompt: message.prompt,
             type: message.type
           });
-        }, 500);
+        }, 600);
       });
       sendResponse({ success: true });
       break;
 
-    // Content script: open chat
     case 'open-stealth-chat':
       openPopupWindow();
       sendResponse({ success: true });
       break;
 
-    // Content script: close chat
     case 'close-stealth-chat':
       closePopupWindow();
       sendResponse({ success: true });
       break;
 
-    // Content script: toggle chat
     case 'toggle-stealth-chat':
       togglePopupWindow();
       sendResponse({ success: true });
       break;
 
-    // Content script: hide (minimize) on fullscreen/blur
     case 'hide-stealth-chat':
       hidePopupWindow();
       sendResponse({ success: true });
       break;
 
-    // Content script: restore after tab regains focus
     case 'restore-stealth-chat':
-      if (popupWasOpen) {
-        restorePopupWindow();
-      }
+      if (popupWasOpen) restorePopupWindow();
       sendResponse({ success: true });
       break;
 
-    // Popup window: requesting pending selection data
     case 'get-pending-selection':
       sendResponse({ selection: pendingSelection });
       pendingSelection = null;
       break;
 
-    // Popup panel: open popup window
     case 'open-popup-window':
       openPopupWindow();
       sendResponse({ success: true });
       break;
 
-    // Health check from popup panel
     case 'check-backend':
-      fetch('https://chatbot-chrome-extension-wnhp.onrender.com/health', { method: 'GET' })
+      fetch(`${BACKEND_URL}/health`, { method: 'GET' })
         .then(r => r.ok ? sendResponse({ status: 'connected' }) : sendResponse({ status: 'disconnected' }))
         .catch(() => sendResponse({ status: 'disconnected' }));
-      return true; // async response
+      return true;
 
     default:
       break;
@@ -107,12 +96,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // ─── Popup Window Management ─────────────────────────────────────────────
-
 async function openPopupWindow() {
-  // If already open, just focus it
   if (popupWindowId !== null) {
     try {
-      await chrome.windows.update(popupWindowId, { focused: true });
+      const win = await chrome.windows.get(popupWindowId);
+      if (win.state === 'minimized') {
+        await chrome.windows.update(popupWindowId, { state: 'normal', focused: true });
+      } else {
+        await chrome.windows.update(popupWindowId, { focused: true });
+      }
       popupWasOpen = true;
       return;
     } catch {
@@ -120,24 +112,19 @@ async function openPopupWindow() {
     }
   }
 
-  // Position: bottom-right corner of the screen
-  const screenWidth = 1920; // fallback
-  const screenHeight = 1080;
-
   const win = await chrome.windows.create({
     url: chrome.runtime.getURL('popup-chat.html'),
     type: 'popup',
     width: 420,
     height: 580,
-    top: screenHeight - 620,
-    left: screenWidth - 460,
+    top: 80,
+    left: 1200,
     focused: true
   });
 
   popupWindowId = win.id;
   popupWasOpen = true;
 
-  // Track window close
   chrome.windows.onRemoved.addListener(function onRemoved(wId) {
     if (wId === popupWindowId) {
       popupWindowId = null;
@@ -149,11 +136,7 @@ async function openPopupWindow() {
 
 async function closePopupWindow() {
   if (popupWindowId !== null) {
-    try {
-      await chrome.windows.remove(popupWindowId);
-    } catch {
-      // Already closed
-    }
+    try { await chrome.windows.remove(popupWindowId); } catch {}
     popupWindowId = null;
     popupWasOpen = false;
   }
@@ -170,7 +153,6 @@ async function togglePopupWindow() {
 async function hidePopupWindow() {
   if (popupWindowId !== null) {
     try {
-      // Minimize the window (makes it disappear from screen)
       await chrome.windows.update(popupWindowId, { state: 'minimized' });
       popupWasOpen = true;
     } catch {
@@ -191,16 +173,12 @@ async function restorePopupWindow() {
   }
 }
 
-// Send a message to the popup window's page
 function sendToPopup(message) {
   if (popupWindowId === null) return;
-  // Broadcast to all extension pages — popup-chat.html will pick it up
   chrome.runtime.sendMessage(message).catch(() => {});
 }
 
 // ─── Extension Install ──────────────────────────────────────────────────
-chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === 'install') {
-    console.log('[AI Assistant] Extension installed — Stealth Mode active.');
-  }
+chrome.runtime.onInstalled.addListener(() => {
+  console.log('[AI Assistant] Extension installed — click the icon to open chatbot.');
 });
