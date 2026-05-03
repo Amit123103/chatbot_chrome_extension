@@ -4,6 +4,19 @@ A Chrome Extension (Manifest V3) that acts as a mini AI coding assistant on any 
 
 ---
 
+## 📸 Screenshots
+
+<p align="center">
+  <img src="assets/screenshots/coding_assistant_dark.png" width="45%" alt="Coding Assistant Dark Mode">
+  &nbsp;
+  <img src="assets/screenshots/math_assistant_light.png" width="45%" alt="Math Assistant Light Mode">
+</p>
+<p align="center">
+  <img src="assets/screenshots/analyzing_state.png" width="45%" alt="Analyzing State">
+</p>
+
+---
+
 ## ✨ Features
 
 ### 🔍 Smart Text Selection
