@@ -37,10 +37,10 @@
   "commands": {
     "toggle-chat": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
+        "default": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
       },
-      "description": "Toggle the AI chatbot panel"
+      "description": "Open/Toggle the AI chatbot"
     },
     "quick-hide": {
       "suggested_key": {

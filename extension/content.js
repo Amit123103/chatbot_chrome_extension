@@ -138,13 +138,20 @@
     try {
       if (!isAlive()) return;
 
-      // Ctrl+X — Open chatbot
+      // Ctrl+X — Open chatbot globally (and send text if selected)
       if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key === 'x') {
         var sel = window.getSelection();
         var selText = sel ? sel.toString().trim() : '';
-        if (!selText || selText.length === 0) {
-          e.preventDefault();
-          e.stopPropagation();
+        
+        // Prevent default cut behavior if we're using this as our global hotkey
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (selText && selText.length >= MIN_TEXT_LENGTH) {
+          // If text is selected, send it to the chatbot and open it
+          sendSelectionToPopup(selText);
+        } else {
+          // Otherwise just open the empty chatbot
           send({ action: 'open-stealth-chat' });
         }
       }
