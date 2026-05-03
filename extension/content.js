@@ -139,7 +139,7 @@
       if (!isAlive()) return;
 
       // Ctrl+X — Open chatbot globally (and send text if selected)
-      if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key === 'x') {
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && (e.key.toLowerCase() === 'x' || e.code === 'KeyX')) {
         var sel = window.getSelection();
         var selText = sel ? sel.toString().trim() : '';
         
