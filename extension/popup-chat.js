@@ -230,7 +230,7 @@ function fmt(text) {
 }
 
 function esc(s) {
-  const m = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
+  const m = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
   return s.replace(/[&<>"']/g, c => m[c]);
 }
 

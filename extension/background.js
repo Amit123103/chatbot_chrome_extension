@@ -35,14 +35,19 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     };
     let wasOpen = popupWindowId !== null;
     openChatbot().then(function () {
-      setTimeout(function () {
-        chrome.runtime.sendMessage({
-          action: 'new-selection',
-          text: message.text,
-          prompt: message.prompt,
-          type: message.type
-        }).catch(function () {});
-      }, wasOpen ? 50 : 800);
+      if (wasOpen) {
+        // If window is already open, it won't fetch pendingSelection on load, so we push it.
+        // Adding a tiny 50ms delay to ensure focus completes before sending.
+        setTimeout(function () {
+          chrome.runtime.sendMessage({
+            action: 'new-selection',
+            text: message.text,
+            prompt: message.prompt,
+            type: message.type
+          }).catch(function () {});
+        }, 50);
+        pendingSelection = null;
+      }
     });
     sendResponse({ success: true });
 
