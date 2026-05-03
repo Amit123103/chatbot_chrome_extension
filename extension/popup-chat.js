@@ -5,6 +5,24 @@ const sendBtn = document.getElementById('sendBtn');
 const clearBtn = document.getElementById('clearBtn');
 const closeBtn = document.getElementById('closeBtn');
 
+// ─── Theme Management ────────────────────────────────────────
+const themeBtn = document.getElementById('themeBtn');
+
+function initTheme() {
+  const savedTheme = localStorage.getItem('chat-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('chat-theme', next);
+}
+
+initTheme();
+themeBtn.addEventListener('click', toggleTheme);
+
 // ─── Event Listeners ───────────────────────────────────────
 sendBtn.addEventListener('click', handleSend);
 inputEl.addEventListener('keydown', (e) => {

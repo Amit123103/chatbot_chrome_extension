@@ -5,16 +5,98 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Assistant</title>
   <style>
+    :root {
+      /* Dark Theme (Default) */
+      --bg-color: #1a1a2e;
+      --bg-gradient: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      --text-main: #e4e4e7;
+      --text-muted: #71717a;
+      --text-shortcut: #52525b;
+      
+      --header-bg: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+      --header-border: rgba(255,255,255,0.06);
+      
+      --btn-bg: rgba(255,255,255,0.06);
+      --btn-hover: rgba(255,255,255,0.12);
+      --btn-text: #a1a1aa;
+      --btn-text-hover: #f4f4f5;
+      --btn-danger-hover: rgba(239,68,68,0.2);
+      
+      --msg-user-bg: rgba(52,211,153,0.08);
+      --msg-user-border: rgba(52,211,153,0.12);
+      --msg-ai-bg: rgba(99,102,241,0.08);
+      --msg-ai-border: rgba(99,102,241,0.12);
+      
+      --code-bg: #0d1117;
+      --code-border: rgba(255,255,255,0.06);
+      --code-text: #e6edf3;
+      --inline-code-bg: rgba(255,255,255,0.08);
+      --inline-code-text: #c9d1d9;
+      
+      --input-area-bg: rgba(0,0,0,0.15);
+      --input-wrap-bg: rgba(255,255,255,0.05);
+      --input-wrap-border: rgba(255,255,255,0.08);
+      --input-placeholder: #52525b;
+      
+      --kbd-bg: rgba(255,255,255,0.08);
+      --kbd-border: rgba(255,255,255,0.1);
+      
+      --scroll-thumb: rgba(255,255,255,0.08);
+      --scroll-thumb-hover: rgba(255,255,255,0.15);
+    }
+
+    [data-theme="light"] {
+      /* Light Theme */
+      --bg-color: #f8fafc;
+      --bg-gradient: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-shortcut: #94a3b8;
+      
+      --header-bg: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05));
+      --header-border: rgba(0,0,0,0.06);
+      
+      --btn-bg: rgba(0,0,0,0.05);
+      --btn-hover: rgba(0,0,0,0.1);
+      --btn-text: #64748b;
+      --btn-text-hover: #1e293b;
+      --btn-danger-hover: rgba(239,68,68,0.15);
+      
+      --msg-user-bg: rgba(52,211,153,0.15);
+      --msg-user-border: rgba(52,211,153,0.3);
+      --msg-ai-bg: white;
+      --msg-ai-border: rgba(99,102,241,0.2);
+      
+      --code-bg: #f1f5f9;
+      --code-border: rgba(0,0,0,0.1);
+      --code-text: #0f172a;
+      --inline-code-bg: rgba(0,0,0,0.06);
+      --inline-code-text: #334155;
+      
+      --input-area-bg: rgba(255,255,255,0.5);
+      --input-wrap-bg: white;
+      --input-wrap-border: rgba(0,0,0,0.15);
+      --input-placeholder: #94a3b8;
+      
+      --kbd-bg: rgba(0,0,0,0.05);
+      --kbd-border: rgba(0,0,0,0.1);
+      
+      --scroll-thumb: rgba(0,0,0,0.15);
+      --scroll-thumb-hover: rgba(0,0,0,0.25);
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-      background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      color: #e4e4e7;
+      background: var(--bg-gradient);
+      background-color: var(--bg-color);
+      color: var(--text-main);
       height: 100vh;
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
     }
 
     /* ─── Header ─── */
@@ -23,8 +105,8 @@
       align-items: center;
       gap: 10px;
       padding: 12px 16px;
-      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: var(--header-bg);
+      border-bottom: 1px solid var(--header-border);
       user-select: none;
       -webkit-app-region: drag;
     }
@@ -40,19 +122,19 @@
     }
 
     .header-text { flex: 1; }
-    .title { font-weight: 600; font-size: 13px; color: #f4f4f5; letter-spacing: -0.01em; }
+    .title { font-weight: 600; font-size: 13px; color: var(--text-main); letter-spacing: -0.01em; }
     .subtitle { font-size: 10px; color: #6366f1; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
 
     .header-actions { display: flex; gap: 4px; -webkit-app-region: no-drag; }
 
     .hdr-btn {
       width: 26px; height: 26px; border: none; border-radius: 6px;
-      background: rgba(255,255,255,0.06); color: #a1a1aa;
+      background: var(--btn-bg); color: var(--btn-text);
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       transition: all 0.2s ease;
     }
-    .hdr-btn:hover { background: rgba(255,255,255,0.12); color: #f4f4f5; }
-    .hdr-btn.danger:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    .hdr-btn:hover { background: var(--btn-hover); color: var(--btn-text-hover); }
+    .hdr-btn.danger:hover { background: var(--btn-danger-hover); color: #ef4444; }
 
     /* ─── Messages ─── */
     .messages {
@@ -64,8 +146,8 @@
 
     .messages::-webkit-scrollbar { width: 4px; }
     .messages::-webkit-scrollbar-track { background: transparent; }
-    .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
-    .messages::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+    .messages::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
+    .messages::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
 
     /* Welcome */
     .welcome {
@@ -82,16 +164,16 @@
       animation: float 3s ease-in-out infinite;
     }
     @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
-    .welcome h3 { font-size: 14px; font-weight: 700; color: #f4f4f5; }
-    .welcome p { font-size: 12px; color: #71717a; max-width: 240px; }
+    .welcome h3 { font-size: 14px; font-weight: 700; color: var(--text-main); }
+    .welcome p { font-size: 12px; color: var(--text-muted); max-width: 240px; }
     .shortcuts {
       display: flex; flex-direction: column; gap: 4px; margin-top: 6px;
     }
-    .shortcuts span { font-size: 10px; color: #52525b; }
+    .shortcuts span { font-size: 10px; color: var(--text-shortcut); }
     .shortcuts kbd {
       display: inline-block; padding: 1px 5px; font-size: 9px;
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 3px; color: #a1a1aa; font-family: 'Segoe UI', sans-serif;
+      background: var(--kbd-bg); border: 1px solid var(--kbd-border);
+      border-radius: 3px; color: var(--text-muted); font-family: 'Segoe UI', sans-serif;
     }
 
     /* Message Bubbles */
@@ -100,15 +182,15 @@
 
     .msg-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
     .msg-role { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-    .msg-user .msg-role { color: #34d399; }
-    .msg-ai .msg-role { color: #a5b4fc; }
+    .msg-user .msg-role { color: #10b981; }
+    .msg-ai .msg-role { color: #8b5cf6; }
 
     .msg-badge {
       font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 8px;
       text-transform: uppercase; letter-spacing: 0.05em;
     }
     .msg-badge.code { background: rgba(251,146,60,0.15); color: #fb923c; }
-    .msg-badge.text { background: rgba(52,211,153,0.15); color: #34d399; }
+    .msg-badge.text { background: rgba(52,211,153,0.15); color: #10b981; }
 
     .msg-body {
       padding: 10px 12px; border-radius: 10px;
@@ -116,20 +198,20 @@
       word-break: break-word; overflow-wrap: break-word;
     }
     .msg-user .msg-body {
-      background: rgba(52,211,153,0.08);
-      border: 1px solid rgba(52,211,153,0.12);
+      background: var(--msg-user-bg);
+      border: 1px solid var(--msg-user-border);
       border-radius: 10px 10px 3px 10px;
     }
     .msg-ai .msg-body {
-      background: rgba(99,102,241,0.08);
-      border: 1px solid rgba(99,102,241,0.12);
+      background: var(--msg-ai-bg);
+      border: 1px solid var(--msg-ai-border);
       border-radius: 10px 10px 10px 3px;
     }
 
     .msg-body p { margin: 0 0 6px 0; }
     .msg-body p:last-child { margin-bottom: 0; }
-    .msg-body strong { color: #f4f4f5; font-weight: 600; }
-    .msg-body h2,.msg-body h3,.msg-body h4 { margin: 8px 0 4px; color: #e4e4e7; font-weight: 700; }
+    .msg-body strong { color: var(--text-main); font-weight: 600; }
+    .msg-body h2,.msg-body h3,.msg-body h4 { margin: 8px 0 4px; color: var(--text-main); font-weight: 700; }
     .msg-body h2 { font-size: 14px; }
     .msg-body h3 { font-size: 13px; }
     .msg-body h4 { font-size: 12.5px; }
@@ -138,32 +220,32 @@
 
     /* Code Blocks */
     .msg-body pre {
-      background: #0d1117;
-      border: 1px solid rgba(255,255,255,0.06);
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
       border-radius: 8px; padding: 10px; padding-top: 8px;
       margin: 6px 0; overflow-x: auto; position: relative;
     }
     .msg-body pre code {
       font-family: 'Cascadia Code','Fira Code','Consolas',monospace;
-      font-size: 11.5px; line-height: 1.55; color: #e6edf3;
+      font-size: 11.5px; line-height: 1.55; color: var(--code-text);
       background: none; padding: 0; border: none;
     }
     .msg-body code {
       font-family: 'Cascadia Code','Consolas',monospace;
-      font-size: 11.5px; background: rgba(255,255,255,0.08);
-      padding: 1px 5px; border-radius: 3px; color: #c9d1d9;
+      font-size: 11.5px; background: var(--inline-code-bg);
+      padding: 1px 5px; border-radius: 3px; color: var(--inline-code-text);
     }
 
     .copy-btn {
       position: absolute; top: 6px; right: 6px;
       padding: 2px 8px; font-size: 10px; font-weight: 600;
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 5px;
-      background: rgba(255,255,255,0.06); color: #a1a1aa;
+      border: 1px solid var(--header-border); border-radius: 5px;
+      background: var(--btn-bg); color: var(--btn-text);
       cursor: pointer; font-family: 'Segoe UI', sans-serif;
       transition: all 0.2s ease;
     }
-    .copy-btn:hover { background: rgba(255,255,255,0.12); color: #f4f4f5; }
-    .copy-btn.copied { background: rgba(52,211,153,0.15); color: #34d399; border-color: rgba(52,211,153,0.3); }
+    .copy-btn:hover { background: var(--btn-hover); color: var(--btn-text-hover); }
+    .copy-btn.copied { background: rgba(16,185,129,0.15); color: #10b981; border-color: rgba(16,185,129,0.3); }
 
     /* Loading */
     .loading-dots { display: flex; gap: 3px; align-items: center; margin-bottom: 4px; }
@@ -174,25 +256,25 @@
     .loading-dots span:nth-child(2) { animation-delay: 0.16s; }
     .loading-dots span:nth-child(3) { animation-delay: 0.32s; }
     @keyframes bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
-    .loading-text { font-size: 11px; color: #71717a; font-style: italic; }
+    .loading-text { font-size: 11px; color: var(--text-muted); font-style: italic; }
 
     /* Error */
     .error-msg {
       background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
-      border-radius: 10px; padding: 10px 12px; color: #fca5a5;
+      border-radius: 10px; padding: 10px 12px; color: #ef4444;
       font-size: 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
     }
 
     /* ─── Input ─── */
     .input-area {
       padding: 10px 14px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      background: rgba(0,0,0,0.15);
+      border-top: 1px solid var(--header-border);
+      background: var(--input-area-bg);
     }
     .input-wrap {
       display: flex; gap: 6px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--input-wrap-bg);
+      border: 1px solid var(--input-wrap-border);
       border-radius: 10px; padding: 3px 3px 3px 10px;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
@@ -202,10 +284,10 @@
     }
     .input-wrap input {
       flex: 1; background: none; border: none; outline: none;
-      color: #e4e4e7; font-size: 12.5px; padding: 5px 0;
+      color: var(--text-main); font-size: 12.5px; padding: 5px 0;
       font-family: 'Segoe UI', sans-serif;
     }
-    .input-wrap input::placeholder { color: #52525b; }
+    .input-wrap input::placeholder { color: var(--input-placeholder); }
     .send-btn {
       width: 30px; height: 30px; border: none; border-radius: 7px;
       background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -216,6 +298,12 @@
     }
     .send-btn:hover { transform: scale(1.05); }
     .send-btn:active { transform: scale(0.95); }
+    
+    /* Sun/Moon icons for toggle */
+    .moon-icon { display: block; }
+    .sun-icon { display: none; }
+    [data-theme="light"] .moon-icon { display: none; }
+    [data-theme="light"] .sun-icon { display: block; }
   </style>
 </head>
 <body>
@@ -232,6 +320,22 @@
       <div class="subtitle">Stealth Mode</div>
     </div>
     <div class="header-actions">
+      <button class="hdr-btn" id="themeBtn" title="Toggle Theme">
+        <svg class="moon-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <svg class="sun-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </button>
       <button class="hdr-btn" id="clearBtn" title="Clear chat">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3 6 5 6 21 6"/>
@@ -261,7 +365,6 @@
       <div class="shortcuts">
         <span><kbd>Ctrl</kbd>+<kbd>X</kbd> Open Chat</span>
         <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> Close Chat</span>
-        <span><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Y</kbd> Toggle</span>
       </div>
     </div>
   </div>
