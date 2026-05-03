@@ -1,0 +1,21 @@
+{
+  "name": "ai-assistant-backend",
+  "version": "1.0.0",
+  "description": "Backend server for AI Smart Selection Assistant Chrome Extension",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "openai": "^4.67.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
