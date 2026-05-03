@@ -13,8 +13,8 @@
 (function () {
   'use strict';
 
-  const MIN_TEXT_LENGTH = 5;
-  const DEBOUNCE_MS = 400;
+  const MIN_TEXT_LENGTH = 1;
+  const DEBOUNCE_MS = 100;
 
   let debounceTimer = null;
   let extensionEnabled = true;

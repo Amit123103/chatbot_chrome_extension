@@ -33,6 +33,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       prompt: message.prompt,
       type: message.type
     };
+    let wasOpen = popupWindowId !== null;
     openChatbot().then(function () {
       setTimeout(function () {
         chrome.runtime.sendMessage({
@@ -41,7 +42,7 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
           prompt: message.prompt,
           type: message.type
         }).catch(function () {});
-      }, 800);
+      }, wasOpen ? 50 : 800);
     });
     sendResponse({ success: true });
 
