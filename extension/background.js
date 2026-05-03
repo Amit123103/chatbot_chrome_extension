@@ -96,7 +96,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // Health check from popup panel
     case 'check-backend':
-      fetch('http://localhost:3001/health', { method: 'GET' })
+      fetch('https://chatbot-chrome-extension-wnhp.onrender.com/health', { method: 'GET' })
         .then(r => r.ok ? sendResponse({ status: 'connected' }) : sendResponse({ status: 'disconnected' }))
         .catch(() => sendResponse({ status: 'disconnected' }));
       return true; // async response
