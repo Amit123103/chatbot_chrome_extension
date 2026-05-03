@@ -170,7 +170,13 @@ async function toggleChatbot() {
   } catch (e) {}
 }
 
-// ─── Extension Install ──────────────────────────────────────────────────
+// ─── Browser Startup & Extension Install ──────────────────────────────────
+chrome.runtime.onStartup.addListener(function () {
+  console.log('[AI Assistant] Chrome started — auto-opening chatbot.');
+  openChatbot().catch(function () {});
+});
+
 chrome.runtime.onInstalled.addListener(function () {
-  console.log('[AI Assistant] Extension installed — click the icon to open chatbot.');
+  console.log('[AI Assistant] Extension installed — auto-opening chatbot.');
+  openChatbot().catch(function () {});
 });
