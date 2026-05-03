@@ -116,15 +116,21 @@ async function openPopupWindow() {
     const win = await chrome.windows.create({
       url: chrome.runtime.getURL('popup-chat.html'),
       type: 'popup',
-      width: 420,
-      height: 580,
       focused: true
     });
 
     popupWindowId = win.id;
     popupWasOpen = true;
   } catch (e) {
-    console.log('[AI Assistant] Could not open popup:', e.message);
+    // Fallback: try with a tab instead
+    try {
+      const tab = await chrome.tabs.create({
+        url: chrome.runtime.getURL('popup-chat.html')
+      });
+      console.log('[AI Assistant] Opened as tab instead:', tab.id);
+    } catch (e2) {
+      console.log('[AI Assistant] Could not open:', e2.message);
+    }
     return;
   }
 
