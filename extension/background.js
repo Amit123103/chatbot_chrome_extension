@@ -92,7 +92,6 @@ async function openChatbot() {
       var tab = await chrome.tabs.get(chatTabId);
       if (tab) {
         await chrome.tabs.update(chatTabId, { active: true });
-        await chrome.windows.update(tab.windowId, { focused: true });
         return;
       }
     } catch (e) {
