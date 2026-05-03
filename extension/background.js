@@ -13,7 +13,7 @@ let pendingSelection = null;
 
 // ─── CLICKING THE EXTENSION ICON → Opens Chatbot ────────────────────────
 chrome.action.onClicked.addListener(function () {
-  openChatbot();
+  openChatbot().catch(function () {});
 });
 
 // ─── Keyboard Commands (from manifest) ──────────────────────────────────
@@ -129,11 +129,13 @@ async function closeChatbot() {
 }
 
 async function toggleChatbot() {
-  if (chatTabId !== null) {
-    closeChatbot();
-  } else {
-    openChatbot();
-  }
+  try {
+    if (chatTabId !== null) {
+      await closeChatbot();
+    } else {
+      await openChatbot();
+    }
+  } catch (e) {}
 }
 
 // ─── Extension Install ──────────────────────────────────────────────────
