@@ -19,6 +19,22 @@
   let debounceTimer = null;
   let extensionEnabled = true;
 
+  // ─── Runtime Validity Check ─────────────────────────────────────────────
+  // After extension reload, old content scripts lose their connection.
+  // This check prevents "Extension context invalidated" errors.
+  function isRuntimeValid() {
+    try {
+      return !!(chrome.runtime && chrome.runtime.id);
+    } catch {
+      return false;
+    }
+  }
+
+  function safeSendMessage(msg) {
+    if (!isRuntimeValid()) return;
+    chrome.runtime.sendMessage(msg).catch(() => {});
+  }
+
   // ─── Code Detection ─────────────────────────────────────────────────────
   function isCode(text) {
     const codePatterns = [
@@ -110,24 +126,22 @@ Selected text:
     const trimmed = selectedText.trim();
     if (trimmed.length < MIN_TEXT_LENGTH) return;
     if (!extensionEnabled) return;
+    if (!isRuntimeValid()) return;
 
     const isCodeText = isCode(trimmed);
     const prompt = buildPrompt(trimmed, isCodeText);
 
-    // Send to background → background forwards to popup window
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       action: 'selection-made',
       text: trimmed,
       prompt: prompt,
       type: isCodeText ? 'code' : 'text'
-    }).catch(() => {
-      // Extension context may be invalidated — silently fail
     });
   }
 
   // ─── Text Selection Listener (with debounce) ───────────────────────────
   document.addEventListener('mouseup', () => {
-    if (!extensionEnabled) return;
+    if (!extensionEnabled || !isRuntimeValid()) return;
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       const selection = window.getSelection();
@@ -142,15 +156,16 @@ Selected text:
   // Ctrl+X → Open chatbot popup
   // Ctrl+Z → Close chatbot popup
   document.addEventListener('keydown', (e) => {
+    if (!isRuntimeValid()) return;
+
     // Ctrl+X — Open chatbot (intercept only when nothing is selected to avoid breaking Cut)
     if (e.ctrlKey && !e.shiftKey && !e.altKey && e.key === 'x') {
       const sel = window.getSelection()?.toString()?.trim();
       if (!sel || sel.length === 0) {
         e.preventDefault();
         e.stopPropagation();
-        chrome.runtime.sendMessage({ action: 'open-stealth-chat' }).catch(() => {});
+        safeSendMessage({ action: 'open-stealth-chat' });
       }
-      // If text is selected, let normal Ctrl+X (Cut) work
     }
 
     // Ctrl+Z — Close chatbot (intercept only when not in an input/textarea)
@@ -160,45 +175,47 @@ Selected text:
       if (!isEditable) {
         e.preventDefault();
         e.stopPropagation();
-        chrome.runtime.sendMessage({ action: 'close-stealth-chat' }).catch(() => {});
+        safeSendMessage({ action: 'close-stealth-chat' });
       }
-      // If in an editable field, let normal Ctrl+Z (Undo) work
     }
-  }, true); // Use capture phase to intercept before page handlers
+  }, true);
 
   // ─── Fullscreen Detection — Auto-hide on fullscreen ─────────────────────
   document.addEventListener('fullscreenchange', () => {
     if (document.fullscreenElement) {
-      // Page entered fullscreen — hide the popup
-      chrome.runtime.sendMessage({ action: 'hide-stealth-chat' }).catch(() => {});
+      safeSendMessage({ action: 'hide-stealth-chat' });
     }
   });
 
   // ─── Auto-hide on Tab Visibility Change ─────────────────────────────────
   document.addEventListener('visibilitychange', () => {
+    if (!isRuntimeValid()) return;
     if (document.hidden) {
-      chrome.runtime.sendMessage({ action: 'hide-stealth-chat' }).catch(() => {});
+      safeSendMessage({ action: 'hide-stealth-chat' });
     } else {
-      chrome.runtime.sendMessage({ action: 'restore-stealth-chat' }).catch(() => {});
+      safeSendMessage({ action: 'restore-stealth-chat' });
     }
   });
 
   // ─── Message Listener from Background ───────────────────────────────────
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'toggle-chat') {
-      chrome.runtime.sendMessage({ action: 'toggle-stealth-chat' }).catch(() => {});
-      sendResponse({ success: true });
-    } else if (message.action === 'hide-chat') {
-      chrome.runtime.sendMessage({ action: 'close-stealth-chat' }).catch(() => {});
-      sendResponse({ success: true });
-    } else if (message.action === 'enable') {
-      extensionEnabled = true;
-      sendResponse({ success: true });
-    } else if (message.action === 'disable') {
-      extensionEnabled = false;
-      chrome.runtime.sendMessage({ action: 'close-stealth-chat' }).catch(() => {});
-      sendResponse({ success: true });
-    }
-  });
+  if (isRuntimeValid()) {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (!isRuntimeValid()) return;
+      if (message.action === 'toggle-chat') {
+        safeSendMessage({ action: 'toggle-stealth-chat' });
+        sendResponse({ success: true });
+      } else if (message.action === 'hide-chat') {
+        safeSendMessage({ action: 'close-stealth-chat' });
+        sendResponse({ success: true });
+      } else if (message.action === 'enable') {
+        extensionEnabled = true;
+        sendResponse({ success: true });
+      } else if (message.action === 'disable') {
+        extensionEnabled = false;
+        safeSendMessage({ action: 'close-stealth-chat' });
+        sendResponse({ success: true });
+      }
+    });
+  }
 
 })();
