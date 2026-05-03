@@ -108,35 +108,38 @@ async function openChatbot() {
     }
   }
 
-  // Create a new floating popup window with safe screen coordinates
+  // Calculate safe bounds using chrome.system.display to guarantee no errors
   try {
+    const displays = await chrome.system.display.getInfo();
+    const primary = displays.find(d => d.isPrimary) || displays[0];
+    
+    // Fallbacks if display info is unavailable
+    const sw = primary && primary.workArea ? primary.workArea.width : 1920;
+    const sh = primary && primary.workArea ? primary.workArea.height : 1080;
+    const sx = primary && primary.workArea ? primary.workArea.left : 0;
+    const sy = primary && primary.workArea ? primary.workArea.top : 0;
+
+    const width = 420;
+    const height = 620;
+    const left = Math.max(sx, Math.floor(sx + (sw - width) / 2));
+    const top = Math.max(sy, Math.floor(sy + (sh - height) / 2));
+
     var newWin = await chrome.windows.create({
       url: chrome.runtime.getURL('popup-chat.html'),
       type: 'popup',
-      width: 400,
-      height: 600,
-      top: 100,
-      left: 100,
+      width: width,
+      height: height,
+      top: top,
+      left: left,
       focused: true
     });
     popupWindowId = newWin.id;
   } catch (e) {
-    console.log('[AI Assistant] Error opening window with explicit bounds, falling back to defaults:', e.message);
+    // Ultimate fallback: Tab
     try {
-      // Fallback 1: No bounds
-      var newWinFallback = await chrome.windows.create({
-        url: chrome.runtime.getURL('popup-chat.html'),
-        type: 'popup',
-        focused: true
-      });
-      popupWindowId = newWinFallback.id;
-    } catch (e2) {
-      console.log('[AI Assistant] Error opening window with defaults, falling back to tab:', e2.message);
-      try {
-        // Fallback 2: Normal Tab
-        await chrome.tabs.create({ url: chrome.runtime.getURL('popup-chat.html'), active: true });
-      } catch (e3) {}
-    }
+      var tab = await chrome.tabs.create({ url: chrome.runtime.getURL('popup-chat.html'), active: true });
+      popupWindowId = tab.id; // Store tab ID to prevent multi-open
+    } catch (e2) {}
   }
 
   // Track when window is closed
