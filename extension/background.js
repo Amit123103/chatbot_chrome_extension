@@ -112,18 +112,21 @@ async function openPopupWindow() {
     }
   }
 
-  const win = await chrome.windows.create({
-    url: chrome.runtime.getURL('popup-chat.html'),
-    type: 'popup',
-    width: 420,
-    height: 580,
-    top: 80,
-    left: 1200,
-    focused: true
-  });
+  try {
+    const win = await chrome.windows.create({
+      url: chrome.runtime.getURL('popup-chat.html'),
+      type: 'popup',
+      width: 420,
+      height: 580,
+      focused: true
+    });
 
-  popupWindowId = win.id;
-  popupWasOpen = true;
+    popupWindowId = win.id;
+    popupWasOpen = true;
+  } catch (e) {
+    console.log('[AI Assistant] Could not open popup:', e.message);
+    return;
+  }
 
   chrome.windows.onRemoved.addListener(function onRemoved(wId) {
     if (wId === popupWindowId) {
