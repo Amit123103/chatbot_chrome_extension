@@ -1,14 +1,14 @@
 /**
  * AI Smart Selection Assistant — Background Service Worker
  * 
- * - Clicking the extension icon → opens the chatbot in a new tab
+ * - Clicking the extension icon → opens the floating chatbot popup
  * - Keyboard shortcuts → toggle/hide the chatbot
- * - Forwards selected text from content script to chatbot tab
+ * - Forwards selected text from content script to chatbot
  */
 
 const BACKEND_URL = 'https://chatbot-chrome-extension-wnhp.onrender.com';
 
-let chatTabId = null;
+let popupWindowId = null;
 let pendingSelection = null;
 
 // ─── CLICKING THE EXTENSION ICON → Opens Chatbot ────────────────────────
@@ -58,10 +58,15 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
     sendResponse({ success: true });
 
   } else if (message.action === 'hide-stealth-chat') {
-    // Just minimize — do nothing for tab mode
+    if (popupWindowId !== null) {
+      chrome.windows.update(popupWindowId, { state: 'minimized' }).catch(()=>{});
+    }
     sendResponse({ success: true });
 
   } else if (message.action === 'restore-stealth-chat') {
+    if (popupWindowId !== null) {
+      chrome.windows.update(popupWindowId, { state: 'normal', focused: false }).catch(()=>{});
+    }
     sendResponse({ success: true });
 
   } else if (message.action === 'get-pending-selection') {
@@ -84,53 +89,62 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   }
 });
 
-// ─── Chatbot Tab Management ──────────────────────────────────────────────
+// ─── Chatbot Popup Management ──────────────────────────────────────────────
 async function openChatbot() {
-  // If tab already exists, focus it
-  if (chatTabId !== null) {
+  // If window already exists, focus it
+  if (popupWindowId !== null) {
     try {
-      var tab = await chrome.tabs.get(chatTabId);
-      if (tab) {
-        await chrome.tabs.update(chatTabId, { active: true });
+      var win = await chrome.windows.get(popupWindowId);
+      if (win) {
+        if (win.state === 'minimized') {
+          await chrome.windows.update(popupWindowId, { state: 'normal', focused: true });
+        } else {
+          await chrome.windows.update(popupWindowId, { focused: true });
+        }
         return;
       }
     } catch (e) {
-      chatTabId = null;
+      popupWindowId = null;
     }
   }
 
-  // Create a new tab with the chatbot
+  // Create a new floating popup window with safe screen coordinates
   try {
-    var newTab = await chrome.tabs.create({
+    var newWin = await chrome.windows.create({
       url: chrome.runtime.getURL('popup-chat.html'),
-      active: true
+      type: 'popup',
+      width: 400,
+      height: 600,
+      top: 100,  // Safe default
+      left: 100, // Safe default to fix the "bounds" error
+      focused: true
     });
-    chatTabId = newTab.id;
+    popupWindowId = newWin.id;
   } catch (e) {
-    console.log('[AI Assistant] Error opening tab:', e.message);
+    console.log('[AI Assistant] Error opening window:', e.message);
   }
 
-  // Track when tab is closed
-  chrome.tabs.onRemoved.addListener(function onRemoved(tabId) {
-    if (tabId === chatTabId) {
-      chatTabId = null;
-      chrome.tabs.onRemoved.removeListener(onRemoved);
+  // Track when window is closed
+  chrome.windows.onRemoved.addListener(function onRemoved(winId) {
+    if (winId === popupWindowId) {
+      popupWindowId = null;
+      chrome.windows.onRemoved.removeListener(onRemoved);
     }
   });
 }
 
 async function closeChatbot() {
-  if (chatTabId !== null) {
+  if (popupWindowId !== null) {
     try {
-      await chrome.tabs.remove(chatTabId);
+      await chrome.windows.remove(popupWindowId);
     } catch (e) {}
-    chatTabId = null;
+    popupWindowId = null;
   }
 }
 
 async function toggleChatbot() {
   try {
-    if (chatTabId !== null) {
+    if (popupWindowId !== null) {
       await closeChatbot();
     } else {
       await openChatbot();
