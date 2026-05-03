@@ -115,13 +115,28 @@ async function openChatbot() {
       type: 'popup',
       width: 400,
       height: 600,
-      top: 100,  // Safe default
-      left: 100, // Safe default to fix the "bounds" error
+      top: 100,
+      left: 100,
       focused: true
     });
     popupWindowId = newWin.id;
   } catch (e) {
-    console.log('[AI Assistant] Error opening window:', e.message);
+    console.log('[AI Assistant] Error opening window with explicit bounds, falling back to defaults:', e.message);
+    try {
+      // Fallback 1: No bounds
+      var newWinFallback = await chrome.windows.create({
+        url: chrome.runtime.getURL('popup-chat.html'),
+        type: 'popup',
+        focused: true
+      });
+      popupWindowId = newWinFallback.id;
+    } catch (e2) {
+      console.log('[AI Assistant] Error opening window with defaults, falling back to tab:', e2.message);
+      try {
+        // Fallback 2: Normal Tab
+        await chrome.tabs.create({ url: chrome.runtime.getURL('popup-chat.html'), active: true });
+      } catch (e3) {}
+    }
   }
 
   // Track when window is closed
